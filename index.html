@@ -1,0 +1,2995 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Share</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", sans-serif;
+      background: #0a0a0a;
+      color: #f0f0f0;
+    }
+
+    /* Light theme overrides */
+    body.light-theme {
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    body.light-theme .header {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      border-bottom: 1px solid #ddd;
+    }
+
+    body.light-theme .header h1 {
+      background: linear-gradient(135deg, #0077ff 0%, #00aaff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: none;
+    }
+
+    body.light-theme .mods-container {
+      background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f5f5f5 100%);
+    }
+
+    body.light-theme .mod-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f4f4f4 100%);
+      border-color: #ddd;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    body.light-theme .mod-card:hover {
+      box-shadow: 0 10px 24px rgba(0, 119, 255, 0.25);
+      border-color: #0077ff;
+    }
+
+    body.light-theme .mod-thumbnail {
+      background: linear-gradient(135deg, #f0f0f0 0%, #e6e6e6 100%);
+    }
+
+    body.light-theme .mod-creator {
+      color: #666;
+    }
+
+    body.light-theme .mod-description {
+      color: #555;
+    }
+
+    body.light-theme .search-container,
+    body.light-theme .my-mods-header,
+    body.light-theme .tags-container {
+      background: #ffffff;
+      border-bottom-color: #e0e0e0;
+    }
+
+    body.light-theme .search-input {
+      background: #ffffff;
+      border-color: #ddd;
+      color: #222;
+    }
+
+    body.light-theme .search-input:focus {
+      border-color: #0077ff;
+      box-shadow: 0 0 12px rgba(0, 119, 255, 0.25);
+    }
+
+    body.light-theme .tag-button {
+      background: #ffffff;
+      color: #555;
+      border-color: #ddd;
+    }
+
+    body.light-theme .tag-button.active {
+      background: rgba(0, 119, 255, 0.1);
+      color: #0077ff;
+      border-color: #0077ff;
+    }
+
+    body.light-theme .sidebar {
+      background: linear-gradient(135deg, #ffffff 0%, #f4f4f4 100%);
+      border-right-color: #0077ff;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.1);
+    }
+
+    body.light-theme .sidebar-header {
+      border-bottom-color: #e0e0e0;
+    }
+
+    body.light-theme .sidebar-header h2 {
+      color: #0077ff;
+      text-shadow: none;
+    }
+
+    body.light-theme .sidebar-item {
+      color: #555;
+    }
+
+    body.light-theme .sidebar-item:hover,
+    body.light-theme .sidebar-item.active {
+      background: rgba(0, 119, 255, 0.08);
+      color: #0077ff;
+      border-left-color: #0077ff;
+    }
+
+    body.light-theme .modal-content {
+      background: linear-gradient(135deg, #ffffff 0%, #f7f7f7 100%);
+      border-top-color: #0077ff;
+    }
+
+    body.light-theme .form-group label {
+      color: #555;
+    }
+
+    body.light-theme .form-group input,
+    body.light-theme .form-group textarea {
+      background: #ffffff;
+      border-color: #ddd;
+      color: #222;
+    }
+
+    body.light-theme .file-input-wrapper {
+      background: #ffffff;
+      border-color: #ddd;
+    }
+
+    body.light-theme .thumbnail-preview {
+      background: #fafafa;
+      border-color: #ddd;
+    }
+
+    body.light-theme .btn-cancel {
+      background: linear-gradient(135deg, #e0e0e0 0%, #f0f0f0 100%);
+      color: #555;
+    }
+
+    body.light-theme .empty-state {
+      color: #777;
+    }
+
+    body.light-theme .loading {
+      color: #777;
+    }
+
+    body.light-theme .tag-input-wrapper {
+      background: #ffffff;
+      border-color: #ddd;
+    }
+
+    body.light-theme .tag-item {
+      background: rgba(0, 119, 255, 0.1);
+      color: #0077ff;
+      border-color: #0077ff;
+    }
+
+    body.light-theme .tag-item button {
+      color: #0077ff;
+    }
+
+    #root {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #222;
+      background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
+      flex-shrink: 0;
+      animation: slideDown 0.4s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00d4ff 0%, #00aaff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        filter: drop-shadow(0 0 4px #00d4ff);
+      }
+      to {
+        filter: drop-shadow(0 0 8px #00aaff);
+      }
+    }
+
+    .menu-button {
+      background: linear-gradient(135deg, #00d4ff 0%, #00aaff 100%);
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .menu-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(0, 212, 255, 0.5);
+    }
+
+    .menu-button:active {
+      transform: scale(0.95);
+    }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 250px;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      z-index: 1000;
+      animation: slideLeft 0.4s ease-out;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #00d4ff;
+      box-shadow: 4px 0 20px rgba(0, 212, 255, 0.2);
+    }
+
+    @keyframes slideLeft {
+      from {
+        transform: translateX(-100%);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-header h2 {
+      color: #00d4ff;
+      font-size: 18px;
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+    }
+
+    .sidebar-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-close:hover {
+      color: #00d4ff;
+      transform: rotate(90deg);
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 12px 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-item {
+      padding: 16px 20px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font-size: 15px;
+      color: #aaa;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-item:hover {
+      background: rgba(0, 212, 255, 0.1);
+      color: #00d4ff;
+      transform: translateX(4px);
+      border-left-color: #00d4ff;
+    }
+
+    .sidebar-item:active {
+      background: rgba(0, 212, 255, 0.2);
+      transform: translateX(2px);
+    }
+
+    .sidebar-item.active {
+      background: rgba(0, 212, 255, 0.15);
+      color: #00d4ff;
+      border-left-color: #00d4ff;
+    }
+
+    .search-container {
+      padding: 12px 16px;
+      border-bottom: 1px solid #222;
+      background: #0f0f0f;
+      flex-shrink: 0;
+      animation: slideDown 0.5s ease-out 0.1s both;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #333;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      background: #1a1a1a;
+      color: #f0f0f0;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .tags-container {
+      padding: 12px 16px;
+      border-bottom: 1px solid #222;
+      background: #0f0f0f;
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+    }
+
+    .tag-button {
+      padding: 8px 14px;
+      border: 2px solid #333;
+      background: #1a1a1a;
+      color: #aaa;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tag-button:hover {
+      border-color: #00d4ff;
+      color: #00d4ff;
+    }
+
+    .tag-button.active {
+      background: rgba(0, 212, 255, 0.2);
+      border-color: #00d4ff;
+      color: #00d4ff;
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .mods-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-content: flex-start;
+      background: radial-gradient(circle at 50% 50%, #111 0%, #0a0a0a 100%);
+    }
+
+    @media (max-width: 768px) {
+      .mods-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow-y: auto;
+        padding: 12px;
+        gap: 12px;
+        align-content: flex-start;
+      }
+    }
+
+    .mod-card {
+      border: 2px solid #333;
+      border-radius: 12px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      transition: all 0.3s ease;
+      width: 200px;
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+      animation: fadeInUp 0.5s ease-out;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    @media (max-width: 768px) {
+      .mod-card {
+        width: 100%;
+        flex-shrink: unset;
+      }
+    }
+
+    .mod-card:hover {
+      box-shadow: 0 12px 30px rgba(0, 212, 255, 0.4);
+      border-color: #00d4ff;
+      transform: translateY(-6px) scale(1.02);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .mod-thumbnail {
+      width: 100%;
+      height: 120px;
+      object-fit: contain;
+      background: linear-gradient(135deg, #2a2a2a 0%, #333 100%);
+      transition: transform 0.3s ease;
+    }
+
+    .mod-card:hover .mod-thumbnail {
+      transform: scale(1.05);
+    }
+
+    .mod-info {
+      padding: 8px;
+      position: relative;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mod-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 4px;
+    }
+
+    .mod-name {
+      font-size: 14px;
+      font-weight: 600;
+      flex: 1;
+      line-height: 1.3;
+      color: #00d4ff;
+      transition: color 0.3s ease;
+    }
+
+    .mod-card:hover .mod-name {
+      color: #00aaff;
+    }
+
+    .mod-tag {
+      font-size: 10px;
+      background: rgba(0, 212, 255, 0.2);
+      color: #00d4ff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      display: inline-block;
+    }
+
+    .mod-creator {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 4px;
+      transition: color 0.3s ease;
+    }
+
+    .mod-card:hover .mod-creator {
+      color: #aaa;
+    }
+
+    .mod-description {
+      font-size: 12px;
+      color: #bbb;
+      line-height: 1.3;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+      transition: color 0.3s ease;
+    }
+
+    .mod-card:hover .mod-description {
+      color: #ddd;
+    }
+
+    .download-button {
+      width: 100%;
+      padding: 8px;
+      background: linear-gradient(135deg, #00d4ff 0%, #00aaff 100%);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      margin-top: auto;
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .mod-card:hover .download-button {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .download-button:active {
+      transform: scale(0.98);
+      background: linear-gradient(135deg, #00aaff 0%, #0088cc 100%);
+    }
+
+    .mod-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .action-button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .edit-button {
+      background: linear-gradient(135deg, #00d4ff 0%, #00aaff 100%);
+      color: #000;
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .edit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 212, 255, 0.5);
+    }
+
+    .delete-button {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+
+    .delete-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.5);
+    }
+
+    .action-button:active {
+      transform: scale(0.98);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+      font-size: 16px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: flex-end;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-content {
+      width: 100%;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      border-radius: 16px 16px 0 0;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 24px;
+      animation: slideUp 0.4s ease-out;
+      border-top: 2px solid #00d4ff;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    .modal-content h2 {
+      color: #00d4ff;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #aaa;
+      transition: color 0.3s ease;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #00d4ff;
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .tag-input-wrapper {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      background: #0f0f0f;
+      transition: all 0.3s ease;
+      min-height: 44px;
+      align-items: center;
+    }
+
+    .tag-input-wrapper:focus-within {
+      border-color: #00d4ff;
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.3);
+    }
+
+    .tag-item {
+      background: rgba(0, 212, 255, 0.2);
+      color: #00d4ff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid rgba(0, 212, 255, 0.4);
+    }
+
+    .tag-item button {
+      background: none;
+      border: none;
+      color: #00d4ff;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+
+    .tag-item button:hover {
+      color: #ff6b6b;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      border: 2px dashed #444;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #0f0f0f;
+    }
+
+    .file-input-wrapper:hover {
+      border-color: #00d4ff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 212, 255, 0.2);
+    }
+
+    .file-input-wrapper input {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .file-input-text {
+      font-size: 13px;
+      color: #aaa;
+      transition: color 0.3s ease;
+    }
+
+    .file-input-wrapper:hover .file-input-text {
+      color: #00d4ff;
+    }
+
+    .file-name {
+      font-size: 13px;
+      color: #00d4ff;
+      font-weight: 500;
+      margin-top: 8px;
+    }
+
+    .thumbnail-preview {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-top: 8px;
+      background: #0f0f0f;
+      border: 2px solid #333;
+      transition: all 0.3s ease;
+    }
+
+    .thumbnail-preview:hover {
+      transform: scale(1.02);
+      border-color: #00d4ff;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cancel {
+      background: linear-gradient(135deg, #333 0%, #444 100%);
+      color: #aaa;
+    }
+
+    .btn-cancel:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .btn-cancel:active {
+      transform: scale(0.98);
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #00d4ff 0%, #00aaff 100%);
+      color: #000;
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 212, 255, 0.5);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.98);
+      background: linear-gradient(135deg, #00aaff 0%, #0088cc 100%);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .progress-container {
+      margin-top: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, #222 0%, #333 100%);
+      border-radius: 8px;
+      display: none;
+      border: 1px solid #444;
+    }
+
+    .progress-container.show {
+      display: block;
+      animation: fadeInUp 0.3s ease-out;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      color: #00d4ff;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00d4ff 0%, #00aaff 100%);
+      transition: width 0.3s;
+      box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+    }
+
+    .menu-dropdown {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      border: 2px solid #444;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 999;
+      min-width: 150px;
+      animation: slideDown 0.3s ease-out;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+
+    .menu-item {
+      padding: 12px 16px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      color: #aaa;
+      border-bottom: 1px solid #333;
+      transition: all 0.3s ease;
+    }
+
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .menu-item:hover {
+      background: #333;
+      color: #00d4ff;
+      transform: translateX(4px);
+    }
+
+    .menu-item:active {
+      background: #444;
+      transform: translateX(2px);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .my-mods-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #222;
+      background: #0f0f0f;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideDown 0.5s ease-out 0.1s both;
+    }
+
+    .my-mods-header button {
+      background: linear-gradient(135deg, #00d4ff 0%, #00aaff 100%);
+      border: none;
+      color: #000;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .my-mods-header button:hover {
+      transform: scale(1.05);
+    }
+
+    .my-mods-header h2 {
+      font-size: 18px;
+      color: #00d4ff;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    /* Language modal */
+    .language-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .language-modal-content {
+      width: 90%;
+      max-width: 360px;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      border-radius: 16px;
+      padding: 24px 20px 20px;
+      border: 2px solid #00d4ff;
+      text-align: center;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+      animation: slideUp 0.35s ease-out;
+    }
+
+    .language-modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #00d4ff;
+      margin-bottom: 12px;
+    }
+
+    .language-modal-subtitle {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .language-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .language-button {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .language-button span {
+      display: inline-block;
+    }
+
+    .language-button strong {
+      font-weight: 700;
+    }
+
+    .language-button:hover {
+      border-color: #00d4ff;
+      background: rgba(0, 212, 255, 0.08);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 212, 255, 0.25);
+    }
+
+    .language-button:active {
+      transform: scale(0.98);
+    }
+
+    .language-modal-note {
+      font-size: 11px;
+      color: #777;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const AVAILABLE_TAGS = ['all', 'random', 'minecraft', 'roblox', 'tutorials', 'file', 'meme'];
+
+    // === Added translations helper ===
+    const TRANSLATIONS = {
+      id: {
+        appTitle: 'File Share',
+        menuHome: 'Beranda',
+        menuMyFiles: 'File Saya',
+        menuFeedback: 'Feedback',
+        searchPlaceholder: 'Cari file...',
+        loading: 'Memuat...',
+        noResults: 'Tidak ada hasil pencarian',
+        noFilesYet: 'Belum ada file. Jadilah yang pertama!',
+        myFilesEmpty: 'Anda belum membagikan file apapun',
+        byUser: 'Oleh',
+        shareButtonHeader: '+ Bagikan',
+        createTitle: 'Bagikan File',
+        editTitle: 'Edit File',
+        fileNameLabel: 'Nama File',
+        fileNamePlaceholder: 'Contoh: Game Mod v2.0',
+        descriptionLabel: 'Deskripsi',
+        descriptionPlaceholder: 'Jelaskan file ini...',
+        tagLabel: 'Tag',
+        minecraftTypeLabel: 'Tipe Minecraft',
+        minecraftSeedLabel: 'Seed Minecraft',
+        shareMethodLabel: 'Cara Berbagi',
+        uploadFile: '📁 Upload File',
+        useLink: '🔗 Pakai Link',
+        fileLabel: 'File',
+        fileLinkLabel: 'Link File',
+        fileLinkPlaceholder: 'https://example.com/file.zip',
+        thumbnailLabel: 'Thumbnail (Gambar)',
+        memeLabel: 'Meme',
+        chooseFile: 'Pilih file',
+        chooseThumb: 'Pilih gambar thumbnail',
+        chooseMeme: 'Pilih meme',
+        cancel: 'Batal',
+        share: 'Bagikan',
+        sharing: 'Membagikan...',
+        saving: 'Menyimpan...',
+        save: 'Simpan',
+        uploadPrefix: 'Upload',
+        download: '↓ Download',
+        viewSeed: 'View Seed',
+        viewMore: 'View More',
+        addSeed: '+ Tambah Seed',
+        copy: 'Salin',
+        commentsTitle: 'Komentar',
+        commentPlaceholder: 'Tambah komentar...',
+        send: 'Kirim',
+        edit: '✏️ Edit',
+        delete: '🗑️ Hapus',
+        confirmDelete: 'Yakin ingin menghapus file ini?',
+        createMissingFields: 'Lengkapi semua field termasuk pilih minimal satu tag!',
+        createNeedMemeImage: 'Pilih gambar meme!',
+        createNeedSeed: 'Masukkan minimal satu seed!',
+        createNeedFileOrLink: 'Pilih file atau gunakan link!',
+        createNeedLink: 'Masukkan link file!',
+        createFail: 'Gagal membagikan file!',
+        editMissingFields: 'Lengkapi nama, deskripsi, dan pilih minimal satu tag!',
+        editNeedMemeImage: 'Pilih gambar meme!',
+        editNeedSeed: 'Masukkan minimal satu seed!',
+        editFail: 'Gagal mengedit file!',
+        deleteFail: 'Gagal menghapus file!',
+        languageTitle: 'Pilih Bahasa',
+        languageSubtitle: 'Choose your language / Elige tu idioma',
+        languageNote: 'Kamu bisa mengubah bahasa kapan saja lewat tombol 🌐 di kanan atas.',
+        langId: 'Bahasa Indonesia',
+        langEn: 'English',
+        langEs: 'Español',
+        homeLabel: '🏠 Beranda',
+        myFilesLabel: '📁 File Saya',
+        feedbackLabel: '💬 Feedback',
+      },
+      en: {
+        appTitle: 'File Share',
+        menuHome: 'Home',
+        menuMyFiles: 'My Files',
+        menuFeedback: 'Feedback',
+        searchPlaceholder: 'Search files...',
+        loading: 'Loading...',
+        noResults: 'No search results',
+        noFilesYet: 'No files yet. Be the first!',
+        myFilesEmpty: 'You have not shared any files yet',
+        byUser: 'By',
+        shareButtonHeader: '+ Share',
+        createTitle: 'Share File',
+        editTitle: 'Edit File',
+        fileNameLabel: 'File Name',
+        fileNamePlaceholder: 'Example: Game Mod v2.0',
+        descriptionLabel: 'Description',
+        descriptionPlaceholder: 'Describe this file...',
+        tagLabel: 'Tags',
+        minecraftTypeLabel: 'Minecraft Type',
+        minecraftSeedLabel: 'Minecraft Seed',
+        shareMethodLabel: 'Share Method',
+        uploadFile: '📁 Upload File',
+        useLink: '🔗 Use Link',
+        fileLabel: 'File',
+        fileLinkLabel: 'File Link',
+        fileLinkPlaceholder: 'https://example.com/file.zip',
+        thumbnailLabel: 'Thumbnail (Image)',
+        memeLabel: 'Meme',
+        chooseFile: 'Choose file',
+        chooseThumb: 'Choose thumbnail image',
+        chooseMeme: 'Choose meme',
+        cancel: 'Cancel',
+        share: 'Share',
+        sharing: 'Sharing...',
+        saving: 'Saving...',
+        save: 'Save',
+        uploadPrefix: 'Upload',
+        download: '↓ Download',
+        viewSeed: 'View Seed',
+        viewMore: 'View More',
+        addSeed: '+ Add Seed',
+        copy: 'Copy',
+        commentsTitle: 'Comments',
+        commentPlaceholder: 'Add a comment...',
+        send: 'Send',
+        edit: '✏️ Edit',
+        delete: '🗑️ Delete',
+        confirmDelete: 'Are you sure you want to delete this file?',
+        createMissingFields: 'Fill all fields and select at least one tag!',
+        createNeedMemeImage: 'Choose a meme image!',
+        createNeedSeed: 'Enter at least one seed!',
+        createNeedFileOrLink: 'Choose a file or use a link!',
+        createNeedLink: 'Enter a file link!',
+        createFail: 'Failed to share file!',
+        editMissingFields: 'Fill name, description, and select at least one tag!',
+        editNeedMemeImage: 'Choose a meme image!',
+        editNeedSeed: 'Enter at least one seed!',
+        editFail: 'Failed to edit file!',
+        deleteFail: 'Failed to delete file!',
+        languageTitle: 'Choose Language',
+        languageSubtitle: 'Choose your language / Elige tu idioma',
+        languageNote: 'You can change language anytime via the 🌐 button in the top right.',
+        langId: 'Bahasa Indonesia',
+        langEn: 'English',
+        langEs: 'Español',
+        homeLabel: '🏠 Home',
+        myFilesLabel: '📁 My Files',
+        feedbackLabel: '💬 Feedback',
+      },
+      es: {
+        appTitle: 'File Share',
+        menuHome: 'Inicio',
+        menuMyFiles: 'Mis archivos',
+        menuFeedback: 'Comentarios',
+        searchPlaceholder: 'Buscar archivos...',
+        loading: 'Cargando...',
+        noResults: 'No hay resultados de búsqueda',
+        noFilesYet: 'Todavía no hay archivos. ¡Sé el primero!',
+        myFilesEmpty: 'Todavía no has compartido ningún archivo',
+        byUser: 'Por',
+        shareButtonHeader: '+ Compartir',
+        createTitle: 'Compartir archivo',
+        editTitle: 'Editar archivo',
+        fileNameLabel: 'Nombre del archivo',
+        fileNamePlaceholder: 'Ejemplo: Game Mod v2.0',
+        descriptionLabel: 'Descripción',
+        descriptionPlaceholder: 'Describe este archivo...',
+        tagLabel: 'Etiquetas',
+        minecraftTypeLabel: 'Tipo de Minecraft',
+        minecraftSeedLabel: 'Seed de Minecraft',
+        shareMethodLabel: 'Método de compartir',
+        uploadFile: '📁 Subir archivo',
+        useLink: '🔗 Usar enlace',
+        fileLabel: 'Archivo',
+        fileLinkLabel: 'Enlace del archivo',
+        fileLinkPlaceholder: 'https://example.com/file.zip',
+        thumbnailLabel: 'Miniatura (Imagen)',
+        memeLabel: 'Meme',
+        chooseFile: 'Elegir archivo',
+        chooseThumb: 'Elegir imagen de miniatura',
+        chooseMeme: 'Elegir meme',
+        cancel: 'Cancelar',
+        share: 'Compartir',
+        sharing: 'Compartiendo...',
+        saving: 'Guardando...',
+        save: 'Guardar',
+        uploadPrefix: 'Subiendo',
+        download: '↓ Descargar',
+        viewSeed: 'Ver Seed',
+        viewMore: 'Ver más',
+        addSeed: '+ Agregar Seed',
+        copy: 'Copiar',
+        commentsTitle: 'Comentarios',
+        commentPlaceholder: 'Añadir un comentario...',
+        send: 'Enviar',
+        edit: '✏️ Editar',
+        delete: '🗑️ Eliminar',
+        confirmDelete: '¿Seguro que quieres eliminar este archivo?',
+        createMissingFields: 'Completa todos los campos y elige al menos una etiqueta!',
+        createNeedMemeImage: '¡Elige una imagen de meme!',
+        createNeedSeed: '¡Ingresa al menos una seed!',
+        createNeedFileOrLink: '¡Elige un archivo o usa un enlace!',
+        createNeedLink: '¡Ingresa un enlace de archivo!',
+        createFail: '¡Error al compartir el archivo!',
+        editMissingFields: 'Completa nombre, descripción y al menos una etiqueta!',
+        editNeedMemeImage: '¡Elige una imagen de meme!',
+        editNeedSeed: '¡Ingresa al menos una seed!',
+        editFail: '¡Error al editar el archivo!',
+        deleteFail: '¡Error al eliminar el archivo!',
+        languageTitle: 'Elige idioma',
+        languageSubtitle: 'Choose your language / Elige tu idioma',
+        languageNote: 'Puedes cambiar el idioma en cualquier momento con el botón 🌐 arriba a la derecha.',
+        langId: 'Bahasa Indonesia',
+        langEn: 'English',
+        langEs: 'Español',
+        homeLabel: '🏠 Inicio',
+        myFilesLabel: '📁 Mis archivos',
+        feedbackLabel: '💬 Comentarios',
+      },
+    };
+
+    const t = (lang, key) => (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.id[key] || key;
+    // === end translations helper ===
+
+    const App = () => {
+      const [mods, setMods] = useState([]);
+      const [filteredMods, setFilteredMods] = useState([]);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [selectedTags, setSelectedTags] = useState(['all']);
+      const [showCreateModal, setShowCreateModal] = useState(false);
+      const [showMenu, setShowMenu] = useState(false);
+      const [showSidebar, setShowSidebar] = useState(false);
+      const [loading, setLoading] = useState(true);
+      const [currentView, setCurrentView] = useState('home');
+      const [currentUser, setCurrentUser] = useState(null);
+      const [editingMod, setEditingMod] = useState(null);
+      const [showEditModal, setShowEditModal] = useState(false);
+      const [selectedMod, setSelectedMod] = useState(null);
+      const [showDetailModal, setShowDetailModal] = useState(false);
+      const [modLikes, setModLikes] = useState({});
+      const [modComments, setModComments] = useState({});
+      const [commentText, setCommentText] = useState('');
+      const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        file: null,
+        thumbnail: null,
+        useLink: false,
+        fileLink: '',
+        tags: [],
+        minecraftType: '',
+        minecraftSeeds: [''],
+      });
+      const [fileNames, setFileNames] = useState({ file: '', thumbnail: '' });
+      const [thumbnailPreview, setThumbnailPreview] = useState(null);
+      const [submitting, setSubmitting] = useState(false);
+      const [theme, setTheme] = useState('dark');
+      const room = useRef(null);
+      const clickAudio = useRef(null);
+
+      const [language, setLanguage] = useState('id');
+      const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+      const playClickSound = () => {
+        if (!clickAudio.current) {
+          clickAudio.current = new Audio('/click.mp3');
+        }
+        clickAudio.current.currentTime = 0;
+        clickAudio.current.play().catch(() => {});
+      };
+
+      useEffect(() => {
+        const savedLang = window.localStorage.getItem('file_share_language');
+        if (savedLang) {
+          setLanguage(savedLang);
+        } else {
+          setShowLanguageModal(true);
+        }
+      }, []);
+
+      // keep document <html> lang in sync
+      useEffect(() => {
+        if (document && document.documentElement) {
+          document.documentElement.lang = language;
+        }
+      }, [language]);
+
+      const handleSelectLanguage = (langCode) => {
+        setLanguage(langCode);
+        try {
+          window.localStorage.setItem('file_share_language', langCode);
+        } catch (e) {
+          console.warn('Cannot access localStorage for language preference');
+        }
+        setShowLanguageModal(false);
+      };
+
+      useEffect(() => {
+        room.current = new WebsimSocket();
+        
+        const unsubscribe = room.current.collection('file_share').subscribe((mods) => {
+          setMods(mods.reverse());
+          setLoading(false);
+        });
+
+        // Subscribe to likes
+        room.current.collection('file_like').subscribe((likes) => {
+          const likesMap = {};
+          likes.forEach(like => {
+            if (!likesMap[like.mod_id]) likesMap[like.mod_id] = [];
+            likesMap[like.mod_id].push(like);
+          });
+          setModLikes(likesMap);
+        });
+
+        // Subscribe to comments
+        room.current.collection('file_comment').subscribe((comments) => {
+          const commentsMap = {};
+          comments.forEach(comment => {
+            if (!commentsMap[comment.mod_id]) commentsMap[comment.mod_id] = [];
+            commentsMap[comment.mod_id].push(comment);
+          });
+          setModComments(commentsMap);
+        });
+
+        const getCurrentUser = async () => {
+          const user = await window.websim.getCurrentUser();
+          setCurrentUser(user);
+        };
+
+        getCurrentUser();
+
+        return unsubscribe;
+      }, []);
+
+      useEffect(() => {
+        if (theme === 'light') {
+          document.body.classList.add('light-theme');
+        } else {
+          document.body.classList.remove('light-theme');
+        }
+      }, [theme]);
+
+      useEffect(() => {
+        let filtered = mods.filter(mod =>
+          mod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mod.description.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        if (!selectedTags.includes('all')) {
+          filtered = filtered.filter(mod => {
+            const modTags = mod.tags || [];
+            return selectedTags.some(tag => modTags.includes(tag));
+          });
+        }
+
+        setFilteredMods(filtered);
+      }, [searchTerm, mods, selectedTags]);
+
+      const [uploadProgress, setUploadProgress] = useState({ percentage: 0, file: '' });
+
+      const uploadFileWithProgress = async (file, fileName) => {
+        return new Promise(async (resolve, reject) => {
+          try {
+            setUploadProgress({ percentage: 0, file: fileName });
+            
+            const CHUNK = 1 * 1024 * 1024;
+            let offset = 0;
+
+            const total = file.size;
+            const chunks = [];
+
+            while (offset < total) {
+              const slice = file.slice(offset, offset + CHUNK);
+              chunks.push(slice);
+              offset += CHUNK;
+            }
+
+            for (let i = 0; i < chunks.length; i++) {
+              await new Promise(r => setTimeout(r, 200));
+              const percent = Math.round(((i + 1) / chunks.length) * 90);
+              setUploadProgress(prev => ({ ...prev, percentage: percent }));
+            }
+
+            const url = await window.websim.upload(file);
+            setUploadProgress({ percentage: 100, file: fileName });
+            setTimeout(() => resolve(url), 300);
+          } catch (error) {
+            setUploadProgress({ percentage: 0, file: '' });
+            reject(error);
+          }
+        });
+      };
+
+      const handleFileChange = (e, field) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          setFormData(prev => ({ ...prev, [field]: file }));
+          setFileNames(prev => ({ ...prev, [field]: file.name }));
+          
+          if (field === 'thumbnail') {
+            const reader = new FileReader();
+            reader.onload = (e) => setThumbnailPreview(e.target.result);
+            reader.readAsDataURL(file);
+          }
+        }
+      };
+
+      const handleCreateMod = async (e) => {
+        e.preventDefault();
+        
+        if (!formData.name || !formData.description || !formData.thumbnail || formData.tags.length === 0) {
+          alert(t(language, 'createMissingFields'));
+          return;
+        }
+        
+        const isMeme = formData.tags.includes('meme');
+        const isMinecraftSeed = formData.tags.includes('minecraft') && formData.minecraftType === 'seed';
+
+        if (isMeme) {
+          if (!formData.thumbnail) {
+            alert(t(language, 'createNeedMemeImage'));
+            return;
+          }
+        } else if (isMinecraftSeed) {
+          const cleanedSeeds = (formData.minecraftSeeds || []).map(s => s.trim()).filter(Boolean);
+          if (cleanedSeeds.length === 0) {
+            alert(t(language, 'createNeedSeed'));
+            return;
+          }
+        } else {
+          if (!formData.useLink && !formData.file) {
+            alert(t(language, 'createNeedFileOrLink'));
+            return;
+          }
+          
+          if (formData.useLink && !formData.fileLink) {
+            alert(t(language, 'createNeedLink'));
+            return;
+          }
+        }
+
+        setSubmitting(true);
+        try {
+          let fileUrl = formData.fileLink;
+          if (!isMeme && !isMinecraftSeed && !formData.useLink && formData.file) {
+            fileUrl = await uploadFileWithProgress(formData.file, 'File');
+          }
+          
+          const thumbnailUrl = await uploadFileWithProgress(formData.thumbnail, 'Thumbnail');
+
+          let finalFileUrl = fileUrl;
+          let useLink = formData.useLink;
+
+          if (isMeme) {
+            // For meme, use thumbnail as the main file and set use_link to true
+            finalFileUrl = thumbnailUrl;
+            useLink = true;
+          } else if (isMinecraftSeed) {
+            // For seed, no main file, only seeds
+            finalFileUrl = '';
+            useLink = true;
+          }
+
+          const cleanedSeeds = (formData.minecraftSeeds || []).map(s => s.trim()).filter(Boolean);
+
+          await room.current.collection('file_share').create({
+            name: formData.name,
+            description: formData.description,
+            file_url: finalFileUrl,
+            thumbnail_url: thumbnailUrl,
+            use_link: useLink,
+            tags: formData.tags,
+            minecraft_type: formData.minecraftType,
+            minecraft_seeds: cleanedSeeds,
+          });
+
+          setFormData({
+            name: '',
+            description: '',
+            file: null,
+            thumbnail: null,
+            useLink: false,
+            fileLink: '',
+            tags: [],
+            minecraftType: '',
+            minecraftSeeds: [''],
+          });
+          setFileNames({ file: '', thumbnail: '' });
+          setThumbnailPreview(null);
+          setUploadProgress({ percentage: 0, file: '' });
+          setShowCreateModal(false);
+          setShowMenu(false);
+        } catch (error) {
+          console.error('Error:', error);
+          alert(t(language, 'createFail'));
+          setUploadProgress({ percentage: 0, file: '' });
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
+      const handleEditMod = async (e) => {
+        e.preventDefault();
+        if (!formData.name || !formData.description || formData.tags.length === 0) {
+          alert(t(language, 'editMissingFields'));
+          return;
+        }
+
+        const isMeme = formData.tags.includes('meme');
+        const isMinecraftSeed = formData.tags.includes('minecraft') && formData.minecraftType === 'seed';
+
+        if (isMeme) {
+          // For meme, file is not needed
+          if (!formData.thumbnail && !editingMod.thumbnail_url) {
+            alert(t(language, 'editNeedMemeImage'));
+            return;
+          }
+        } else if (isMinecraftSeed) {
+          const cleanedSeeds = (formData.minecraftSeeds || []).map(s => s.trim()).filter(Boolean);
+          if (cleanedSeeds.length === 0) {
+            alert(t(language, 'editNeedSeed'));
+            return;
+          }
+        }
+
+        setSubmitting(true);
+        try {
+          let fileUrl = editingMod.file_url;
+          let thumbnailUrl = editingMod.thumbnail_url;
+
+          if (!isMeme && !isMinecraftSeed) {
+            if (formData.useLink && formData.fileLink) {
+              fileUrl = formData.fileLink;
+            } else if (!formData.useLink && formData.file) {
+              fileUrl = await uploadFileWithProgress(formData.file, 'File');
+            }
+          }
+
+          if (formData.thumbnail) {
+            thumbnailUrl = await uploadFileWithProgress(formData.thumbnail, 'Thumbnail');
+          }
+
+          let finalFileUrl = fileUrl;
+          let useLink = formData.useLink;
+
+          if (isMeme) {
+            finalFileUrl = thumbnailUrl;
+            useLink = true;
+          } else if (isMinecraftSeed) {
+            finalFileUrl = '';
+            useLink = true;
+          }
+
+          const cleanedSeeds = (formData.minecraftSeeds || []).map(s => s.trim()).filter(Boolean);
+
+          await room.current.collection('file_share').update(editingMod.id, {
+            name: formData.name,
+            description: formData.description,
+            file_url: finalFileUrl,
+            thumbnail_url: thumbnailUrl,
+            use_link: useLink,
+            tags: formData.tags,
+            minecraft_type: formData.minecraftType,
+            minecraft_seeds: cleanedSeeds,
+          });
+
+          setFormData({
+            name: '',
+            description: '',
+            file: null,
+            thumbnail: null,
+            useLink: false,
+            fileLink: '',
+            tags: [],
+            minecraftType: '',
+            minecraftSeeds: [''],
+          });
+          setFileNames({ file: '', thumbnail: '' });
+          setThumbnailPreview(null);
+          setUploadProgress({ percentage: 0, file: '' });
+          setShowEditModal(false);
+          setEditingMod(null);
+        } catch (error) {
+          console.error('Error:', error);
+          alert(t(language, 'editFail'));
+          setUploadProgress({ percentage: 0, file: '' });
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
+      const handleDeleteMod = async (modId) => {
+        if (confirm(t(language, 'confirmDelete'))) {
+          try {
+            await room.current.collection('file_share').delete(modId);
+          } catch (error) {
+            console.error('Error:', error);
+            alert(t(language, 'deleteFail'));
+          }
+        }
+      };
+
+      const openEditModal = (mod) => {
+        setEditingMod(mod);
+        setFormData({
+          name: mod.name,
+          description: mod.description,
+          file: null,
+          thumbnail: null,
+          useLink: mod.use_link || false,
+          fileLink: mod.use_link && mod.file_url ? mod.file_url : '',
+          tags: mod.tags || [],
+          minecraftType: mod.minecraft_type || '',
+          minecraftSeeds: (mod.minecraft_seeds && mod.minecraft_seeds.length > 0) ? mod.minecraft_seeds : [''],
+        });
+        setFileNames({ file: '', thumbnail: '' });
+        setThumbnailPreview(mod.thumbnail_url);
+        setShowEditModal(true);
+      };
+
+      const handleDownload = (fileUrl, useLink) => {
+        if (useLink) {
+          const a = document.createElement('a');
+          a.href = fileUrl;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          const link = document.createElement('a');
+          link.href = fileUrl;
+          link.download = 'file';
+          link.click();
+        }
+      };
+
+      const userMods = mods.filter(mod => mod.username === currentUser?.username);
+
+      const toggleTag = (tag) => {
+        setSelectedTags(prev => {
+          if (prev.includes(tag)) {
+            return prev.filter(t => t !== tag);
+          } else {
+            const newTags = [...prev, tag].filter(t => t !== 'all');
+            return newTags.length === 0 ? ['all'] : newTags;
+          }
+        });
+      };
+
+      const toggleFormTag = (tag) => {
+        setFormData(prev => ({
+          ...prev,
+          tags: prev.tags.includes(tag)
+            ? prev.tags.filter(t => t !== tag)
+            : [...prev.tags, tag]
+        }));
+      };
+
+      const handleLike = async (modId) => {
+        if (!currentUser) return;
+        const existingLike = modLikes[modId]?.find(l => l.username === currentUser.username);
+        
+        if (existingLike) {
+          await room.current.collection('file_like').delete(existingLike.id);
+        } else {
+          await room.current.collection('file_like').create({
+            mod_id: modId,
+          });
+        }
+      };
+
+      const handleAddComment = async (modId) => {
+        if (!commentText.trim() || !currentUser) return;
+        
+        try {
+          await room.current.collection('file_comment').create({
+            mod_id: modId,
+            text: commentText,
+          });
+          setCommentText('');
+        } catch (error) {
+          console.error('Error adding comment:', error);
+        }
+      };
+
+      const handleDeleteComment = async (commentId) => {
+        try {
+          await room.current.collection('file_comment').delete(commentId);
+        } catch (error) {
+          console.error('Error deleting comment:', error);
+        }
+      };
+
+      const openDetailModal = (mod) => {
+        setSelectedMod(mod);
+        setShowDetailModal(true);
+      };
+
+      return (
+        <>
+          {showSidebar && (
+            <div className="sidebar-overlay" onClick={() => setShowSidebar(false)}></div>
+          )}
+
+          {showSidebar && (
+            <div className="sidebar">
+              <div className="sidebar-header">
+                <h2>Menu</h2>
+                <button className="sidebar-close" onClick={() => {
+                  playClickSound();
+                  setShowSidebar(false);
+                }}>✕</button>
+              </div>
+              <div className="sidebar-menu">
+                <button
+                  className={`sidebar-item ${currentView === 'home' ? 'active' : ''}`}
+                  onClick={() => {
+                    playClickSound();
+                    setCurrentView('home');
+                    setShowSidebar(false);
+                    setSearchTerm('');
+                    setSelectedTags(['all']);
+                  }}
+                >
+                  {t(language, 'homeLabel')}
+                </button>
+                <button
+                  className={`sidebar-item ${currentView === 'myMods' ? 'active' : ''}`}
+                  onClick={() => {
+                    playClickSound();
+                    setCurrentView('myMods');
+                    setShowSidebar(false);
+                  }}
+                >
+                  {t(language, 'myFilesLabel')}
+                </button>
+                <button
+                  className="sidebar-item"
+                  onClick={() => {
+                    playClickSound();
+                    window.websim.postComment({ content: 'Berikan feedback Anda tentang website ini!' });
+                    setShowSidebar(false);
+                  }}
+                >
+                  {t(language, 'feedbackLabel')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="header">
+            <button
+              className="menu-button"
+              onClick={() => {
+                playClickSound();
+                setShowSidebar(!showSidebar);
+              }}
+              style={{ background: showSidebar ? 'linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%)' : 'linear-gradient(135deg, #00d4ff 0%, #00aaff 100%)' }}
+            >
+              ☰
+            </button>
+            <h1>{t(language, 'appTitle')}</h1>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', position: 'relative' }}>
+              <button
+                className="menu-button"
+                onClick={() => {
+                  playClickSound();
+                  setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+                }}
+                title="Toggle theme"
+              >
+                {theme === 'dark' ? '🌞' : '🌙'}
+              </button>
+              <button
+                className="menu-button"
+                onClick={() => {
+                  playClickSound();
+                  setShowLanguageModal(true);
+                }}
+                title="Pilih bahasa"
+              >
+                🌐
+              </button>
+              <div style={{ position: 'relative' }}>
+                <button className="menu-button" onClick={() => {
+                  playClickSound();
+                  setShowMenu(!showMenu);
+                }}>
+                  ⋮
+                </button>
+                {showMenu && (
+                  <div className="menu-dropdown">
+                    <button className="menu-item" onClick={() => {
+                      playClickSound();
+                      setShowCreateModal(true);
+                      setShowMenu(false);
+                    }}>
+                      {t(language, 'shareButtonHeader')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {currentView === 'home' && (
+            <>
+              <div className="search-container">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder={t(language, 'searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="tags-container">
+                {AVAILABLE_TAGS.map(tag => (
+                  <button
+                    key={tag}
+                    className={`tag-button ${selectedTags.includes(tag) ? 'active' : ''}`}
+                    onClick={() => {
+                      playClickSound();
+                      toggleTag(tag);
+                    }}
+                  >
+                    {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mods-container">
+                {loading ? (
+                  <div className="loading">{t(language, 'loading')}</div>
+                ) : filteredMods.length === 0 ? (
+                  <div className="empty-state">
+                    {searchTerm ? t(language, 'noResults') : t(language, 'noFilesYet')}
+                  </div>
+                ) : (
+                  filteredMods.map(mod => (
+                    <div key={mod.id} className="mod-card" onClick={() => {
+                      playClickSound();
+                      openDetailModal(mod);
+                    }}>
+                      <img src={mod.thumbnail_url} alt={mod.name} className="mod-thumbnail" />
+                      <div className="mod-info">
+                        <div className="mod-header">
+                          <div className="mod-name">{mod.name}</div>
+                        </div>
+                        {(mod.tags || []).length > 0 && (
+                          <div style={{ marginBottom: '4px' }}>
+                            {mod.tags.map(tag => (
+                              <div key={tag} className="mod-tag">{tag}</div>
+                            ))}
+                            {mod.tags.includes('minecraft') && mod.minecraft_type && (
+                              <div className="mod-tag">{mod.minecraft_type}</div>
+                            )}
+                          </div>
+                        )}
+                        <div className="mod-creator">
+                          {t(language, 'byUser')} {mod.username}
+                        </div>
+                        <div className="mod-description">{mod.description}</div>
+                        {mod.tags?.includes('meme') ? (
+                          <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                            <button
+                              className="download-button"
+                              style={{ 
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                width: 'auto'
+                              }}
+                              onClick={(e) => {
+                                playClickSound();
+                                e.stopPropagation();
+                                handleDownload(mod.file_url, mod.use_link);
+                              }}
+                            >
+                              ⬇️
+                            </button>
+                            <button
+                              className="download-button"
+                              style={{ 
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                flex: 1
+                              }}
+                              onClick={(e) => {
+                                playClickSound();
+                                e.stopPropagation();
+                                openDetailModal(mod);
+                              }}
+                            >
+                              {t(language, 'viewMore')}
+                            </button>
+                          </div>
+                        ) : mod.tags?.includes('minecraft') && mod.minecraft_type === 'seed' ? (
+                          <button
+                            className="download-button"
+                            onClick={(e) => {
+                              playClickSound();
+                              e.stopPropagation();
+                              openDetailModal(mod);
+                            }}
+                          >
+                            {t(language, 'viewSeed')}
+                          </button>
+                        ) : (
+                          <button
+                            className="download-button"
+                            onClick={(e) => {
+                              playClickSound();
+                              e.stopPropagation();
+                              handleDownload(mod.file_url, mod.use_link);
+                            }}
+                          >
+                            {t(language, 'download')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+
+          {currentView === 'myMods' && (
+            <>
+              <div className="my-mods-header">
+                <h2>{t(language, 'menuMyFiles')}</h2>
+              </div>
+
+              <div className="mods-container">
+                {loading ? (
+                  <div className="loading">{t(language, 'loading')}</div>
+                ) : userMods.length === 0 ? (
+                  <div className="empty-state">
+                    {t(language, 'myFilesEmpty')}
+                  </div>
+                ) : (
+                  userMods.map(mod => (
+                    <div key={mod.id} className="mod-card" onClick={() => {
+                      playClickSound();
+                      openDetailModal(mod);
+                    }}>
+                      <img src={mod.thumbnail_url} alt={mod.name} className="mod-thumbnail" />
+                      <div className="mod-info">
+                        <div className="mod-header">
+                          <div className="mod-name">{mod.name}</div>
+                        </div>
+                        {(mod.tags || []).length > 0 && (
+                          <div style={{ marginBottom: '4px' }}>
+                            {mod.tags.map(tag => (
+                              <div key={tag} className="mod-tag">{tag}</div>
+                            ))}
+                            {mod.tags.includes('minecraft') && mod.minecraft_type && (
+                              <div className="mod-tag">{mod.minecraft_type}</div>
+                            )}
+                          </div>
+                        )}
+                        <div className="mod-creator">
+                          {t(language, 'byUser')} {mod.username}
+                        </div>
+                        <div className="mod-description">{mod.description}</div>
+                        {mod.tags?.includes('meme') ? (
+                          <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
+                            <button
+                              className="download-button"
+                              style={{ 
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                width: 'auto'
+                              }}
+                              onClick={(e) => {
+                                playClickSound();
+                                e.stopPropagation();
+                                handleDownload(mod.file_url, mod.use_link);
+                              }}
+                            >
+                              ⬇️
+                            </button>
+                            <button
+                              className="download-button"
+                              style={{ 
+                                padding: '6px 10px',
+                                fontSize: '12px',
+                                flex: 1
+                              }}
+                              onClick={(e) => {
+                                playClickSound();
+                                e.stopPropagation();
+                                openDetailModal(mod);
+                              }}
+                            >
+                              {t(language, 'viewMore')}
+                            </button>
+                          </div>
+                        ) : mod.tags?.includes('minecraft') && mod.minecraft_type === 'seed' ? (
+                          <button
+                            className="download-button"
+                            onClick={(e) => {
+                              playClickSound();
+                              e.stopPropagation();
+                              openDetailModal(mod);
+                            }}
+                          >
+                            {t(language, 'viewSeed')}
+                          </button>
+                        ) : (
+                          <button
+                            className="download-button"
+                            onClick={(e) => {
+                              playClickSound();
+                              e.stopPropagation();
+                              handleDownload(mod.file_url, mod.use_link);
+                            }}
+                          >
+                            {t(language, 'download')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+
+          {showCreateModal && (
+            <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h2>{t(language, 'createTitle')}</h2>
+                <form onSubmit={handleCreateMod}>
+                  <div className="form-group">
+                    <label>{t(language, 'fileNameLabel')}</label>
+                    <input
+                      type="text"
+                      placeholder={t(language, 'fileNamePlaceholder')}
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t(language, 'descriptionLabel')}</label>
+                    <textarea
+                      placeholder={t(language, 'descriptionPlaceholder')}
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    ></textarea>
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t(language, 'tagLabel')}</label>
+                    <div className="tag-input-wrapper">
+                      {AVAILABLE_TAGS.map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            playClickSound();
+                            toggleFormTag(tag);
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            border: formData.tags.includes(tag) ? '2px solid #00d4ff' : '2px solid #333',
+                            background: formData.tags.includes(tag) ? 'rgba(0, 212, 255, 0.2)' : '#0f0f0f',
+                            color: formData.tags.includes(tag) ? '#00d4ff' : '#aaa',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.tags.includes('minecraft') && (
+                    <div className="form-group">
+                      <label>{t(language, 'minecraftTypeLabel')}</label>
+                      <div className="tag-input-wrapper">
+                        {['texture pack', 'modpack', 'mod', 'seed', 'map'].map(type => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => {
+                              playClickSound();
+                              setFormData(prev => ({ ...prev, minecraftType: prev.minecraftType === type ? '' : type }));
+                            }}
+                            style={{
+                              padding: '6px 12px',
+                              border: formData.minecraftType === type ? '2px solid #00d4ff' : '2px solid #333',
+                              background: formData.minecraftType === type ? 'rgba(0, 212, 255, 0.2)' : '#0f0f0f',
+                              color: formData.minecraftType === type ? '#00d4ff' : '#aaa',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: 500,
+                              transition: 'all 0.3s ease',
+                            }}
+                          >
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.tags.includes('minecraft') && formData.minecraftType === 'seed' && (
+                    <div className="form-group">
+                      <label>{t(language, 'minecraftSeedLabel')}</label>
+                      <div className="tag-input-wrapper" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                        {formData.minecraftSeeds.map((seed, index) => (
+                          <div key={index} style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                            <input
+                              type="text"
+                              placeholder={`Seed ${index + 1}`}
+                              value={seed}
+                              onChange={(e) => {
+                                const newSeeds = [...formData.minecraftSeeds];
+                                newSeeds[index] = e.target.value;
+                                setFormData(prev => ({ ...prev, minecraftSeeds: newSeeds }));
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                border: '2px solid #333',
+                                background: '#0f0f0f',
+                                color: '#f0f0f0',
+                                fontSize: '13px',
+                              }}
+                            />
+                            {formData.minecraftSeeds.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newSeeds = formData.minecraftSeeds.filter((_, i) => i !== index);
+                                  setFormData(prev => ({ ...prev, minecraftSeeds: newSeeds.length ? newSeeds : [''] }));
+                                }}
+                                style={{
+                                  padding: '0 10px',
+                                  borderRadius: '6px',
+                                  border: '2px solid #ff6b6b',
+                                  background: 'rgba(255, 107, 107, 0.1)',
+                                  color: '#ff6b6b',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                -
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, minecraftSeeds: [...prev.minecraftSeeds, ''] }))}
+                          style={{
+                            marginTop: '8px',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            border: '2px solid #00d4ff',
+                            background: 'rgba(0, 212, 255, 0.1)',
+                            color: '#00d4ff',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '13px',
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          {t(language, 'addSeed')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!formData.tags.includes('meme') && !(formData.tags.includes('minecraft') && formData.minecraftType === 'seed') && (
+                    <>
+                      <div className="form-group">
+                        <label>{t(language, 'shareMethodLabel')}</label>
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playClickSound();
+                              setFormData(prev => ({ ...prev, useLink: false, file: null, fileLink: '' }));
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              border: formData.useLink ? '2px solid #333' : '2px solid #00d4ff',
+                              borderRadius: '8px',
+                              background: formData.useLink ? '#0f0f0f' : 'rgba(0, 212, 255, 0.1)',
+                              color: formData.useLink ? '#aaa' : '#00d4ff',
+                              cursor: 'pointer',
+                              fontWeight: 500,
+                              transition: 'all 0.3s ease',
+                            }}
+                          >
+                            {t(language, 'uploadFile')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playClickSound();
+                              setFormData(prev => ({ ...prev, useLink: true, file: null }));
+                            }}
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              border: formData.useLink ? '2px solid #00d4ff' : '2px solid #333',
+                              borderRadius: '8px',
+                              background: formData.useLink ? 'rgba(0, 212, 255, 0.1)' : '#0f0f0f',
+                              color: formData.useLink ? '#00d4ff' : '#aaa',
+                              cursor: 'pointer',
+                              fontWeight: 500,
+                              transition: 'all 0.3s ease',
+                            }}
+                          >
+                            {t(language, 'useLink')}
+                          </button>
+                        </div>
+                      </div>
+
+                      {!formData.useLink ? (
+                        <div className="form-group">
+                          <label>{t(language, 'fileLabel')}</label>
+                          <div className="file-input-wrapper" onClick={() => document.getElementById('file-input').click()}>
+                            <input
+                              id="file-input"
+                              type="file"
+                              onChange={(e) => handleFileChange(e, 'file')}
+                            />
+                            <div className="file-input-text">{t(language, 'chooseFile')}</div>
+                            {fileNames.file && <div className="file-name">✓ {fileNames.file}</div>}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="form-group">
+                          <label>{t(language, 'fileLinkLabel')}</label>
+                          <input
+                            type="url"
+                            placeholder={t(language, 'fileLinkPlaceholder')}
+                            value={formData.fileLink}
+                            onChange={(e) => setFormData(prev => ({ ...prev, fileLink: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className="form-group">
+                    <label>{formData.tags.includes('meme') ? t(language, 'memeLabel') : t(language, 'thumbnailLabel')}</label>
+                    <div className="file-input-wrapper" onClick={() => document.getElementById('thumbnail-input').click()}>
+                      <input
+                        id="thumbnail-input"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'thumbnail')}
+                      />
+                      <div className="file-input-text">
+                        {formData.tags.includes('meme') ? t(language, 'chooseMeme') : t(language, 'chooseThumb')}
+                      </div>
+                      {fileNames.thumbnail && <div className="file-name">✓ {fileNames.thumbnail}</div>}
+                    </div>
+                    {thumbnailPreview && <img src={thumbnailPreview} alt="Preview" className="thumbnail-preview" />}
+                  </div>
+
+                  <div className="button-group">
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => {
+                        playClickSound();
+                        setShowCreateModal(false);
+                        setFormData({ name: '', description: '', file: null, thumbnail: null, useLink: false, fileLink: '', tags: [], minecraftType: '', minecraftSeeds: [''] });
+                        setFileNames({ file: '', thumbnail: '' });
+                        setThumbnailPreview(null);
+                        setUploadProgress({ percentage: 0, file: '' });
+                      }}
+                    >
+                      {t(language, 'cancel')}
+                    </button>
+                    <button type="submit" className="btn-submit" disabled={submitting} onClick={() => playClickSound()}>
+                      {submitting ? t(language, 'sharing') : t(language, 'share')}
+                    </button>
+                  </div>
+
+                  {submitting && (
+                    <div className={`progress-container show`}>
+                      <div className="progress-label">
+                        <span>{t(language, 'uploadPrefix')} {uploadProgress.file}...</span>
+                        <span>{Math.min(Math.round(uploadProgress.percentage), 100)}%</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${Math.min(uploadProgress.percentage, 100)}%` }}></div>
+                      </div>
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showEditModal && (
+            <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h2>{t(language, 'editTitle')}</h2>
+                <form onSubmit={handleEditMod}>
+                  <div className="form-group">
+                    <label>{t(language, 'fileNameLabel')}</label>
+                    <input
+                      type="text"
+                      placeholder={t(language, 'fileNamePlaceholder')}
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t(language, 'descriptionLabel')}</label>
+                    <textarea
+                      placeholder={t(language, 'descriptionPlaceholder')}
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    ></textarea>
+                  </div>
+
+                  <div className="form-group">
+                    <label>{t(language, 'tagLabel')}</label>
+                    <div className="tag-input-wrapper">
+                      {AVAILABLE_TAGS.map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleFormTag(tag)}
+                          style={{
+                            padding: '6px 12px',
+                            border: formData.tags.includes(tag) ? '2px solid #00d4ff' : '2px solid #333',
+                            background: formData.tags.includes(tag) ? 'rgba(0, 212, 255, 0.2)' : '#0f0f0f',
+                            color: formData.tags.includes(tag) ? '#00d4ff' : '#aaa',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: 500,
+                            transition: 'all 0.3s ease',
+                          }}
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {formData.tags.includes('minecraft') && (
+                    <div className="form-group">
+                      <label>{t(language, 'minecraftTypeLabel')}</label>
+                      <div className="tag-input-wrapper">
+                        {['texture pack', 'modpack', 'mod', 'seed', 'map'].map(type => (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, minecraftType: prev.minecraftType === type ? '' : type }))}
+                            style={{
+                              padding: '6px 12px',
+                              border: formData.minecraftType === type ? '2px solid #00d4ff' : '2px solid #333',
+                              background: formData.minecraftType === type ? 'rgba(0, 212, 255, 0.2)' : '#0f0f0f',
+                              color: formData.minecraftType === type ? '#00d4ff' : '#aaa',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: 500,
+                              transition: 'all 0.3s ease',
+                            }}
+                          >
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.tags.includes('minecraft') && formData.minecraftType === 'seed' && (
+                    <div className="form-group">
+                      <label>{t(language, 'minecraftSeedLabel')}</label>
+                      <div className="tag-input-wrapper" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                        {formData.minecraftSeeds.map((seed, index) => (
+                          <div key={index} style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                            <input
+                              type="text"
+                              placeholder={`Seed ${index + 1}`}
+                              value={seed}
+                              onChange={(e) => {
+                                const newSeeds = [...formData.minecraftSeeds];
+                                newSeeds[index] = e.target.value;
+                                setFormData(prev => ({ ...prev, minecraftSeeds: newSeeds }));
+                              }}
+                              style={{
+                                flex: 1,
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                border: '2px solid #333',
+                                background: '#0f0f0f',
+                                color: '#f0f0f0',
+                                fontSize: '13px',
+                              }}
+                            />
+                            {formData.minecraftSeeds.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newSeeds = formData.minecraftSeeds.filter((_, i) => i !== index);
+                                  setFormData(prev => ({ ...prev, minecraftSeeds: newSeeds.length ? newSeeds : [''] }));
+                                }}
+                                style={{
+                                  padding: '0 10px',
+                                  borderRadius: '6px',
+                                  border: '2px solid #ff6b6b',
+                                  background: 'rgba(255, 107, 107, 0.1)',
+                                  color: '#ff6b6b',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                -
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, minecraftSeeds: [...prev.minecraftSeeds, ''] }))}
+                          style={{
+                            marginTop: '8px',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            border: '2px solid #00d4ff',
+                            background: 'rgba(0, 212, 255, 0.1)',
+                            color: '#00d4ff',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '13px',
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          {t(language, 'addSeed')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!formData.tags.includes('meme') && !(formData.tags.includes('minecraft') && formData.minecraftType === 'seed') && (
+                    <>
+                      <div className="form-group">
+                        <label>{t(language, 'shareMethodLabel')}</label>
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, useLink: false, file: null, fileLink: '' }))}
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              border: formData.useLink ? '2px solid #333' : '2px solid #00d4ff',
+                              borderRadius: '8px',
+                              background: formData.useLink ? '#0f0f0f' : 'rgba(0, 212, 255, 0.1)',
+                              color: formData.useLink ? '#aaa' : '#00d4ff',
+                              cursor: 'pointer',
+                              fontWeight: 500,
+                              transition: 'all 0.3s ease',
+                            }}
+                            onChange={() => playClickSound()}
+                          >
+                            {t(language, 'uploadFile')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, useLink: true, file: null }))}
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              border: formData.useLink ? '2px solid #00d4ff' : '2px solid #333',
+                              borderRadius: '8px',
+                              background: formData.useLink ? 'rgba(0, 212, 255, 0.1)' : '#0f0f0f',
+                              color: formData.useLink ? '#00d4ff' : '#aaa',
+                              cursor: 'pointer',
+                              fontWeight: 500,
+                              transition: 'all 0.3s ease',
+                            }}
+                          >
+                            {t(language, 'useLink')}
+                          </button>
+                        </div>
+                      </div>
+
+                      {!formData.useLink ? (
+                        <div className="form-group">
+                          <label>{t(language, 'fileLabel')}</label>
+                          <div className="file-input-wrapper" onClick={() => document.getElementById('edit-file-input').click()}>
+                            <input
+                              id="edit-file-input"
+                              type="file"
+                              onChange={(e) => handleFileChange(e, 'file')}
+                            />
+                            <div className="file-input-text">{fileNames.file ? t(language, 'chooseFile') : t(language, 'chooseFile')}</div>
+                            {fileNames.file && <div className="file-name">✓ {fileNames.file}</div>}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="form-group">
+                          <label>{t(language, 'fileLinkLabel')}</label>
+                          <input
+                            type="url"
+                            placeholder={t(language, 'fileLinkPlaceholder')}
+                            value={formData.fileLink}
+                            onChange={(e) => setFormData(prev => ({ ...prev, fileLink: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className="form-group">
+                    <label>{formData.tags.includes('meme') ? t(language, 'memeLabel') : t(language, 'thumbnailLabel')}</label>
+                    <div className="file-input-wrapper" onClick={() => document.getElementById('edit-thumbnail-input').click()}>
+                      <input
+                        id="edit-thumbnail-input"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'thumbnail')}
+                      />
+                      <div className="file-input-text">
+                        {fileNames.thumbnail
+                          ? (formData.tags.includes('meme') ? t(language, 'chooseMeme') : t(language, 'chooseThumb'))
+                          : 'Opsional - Pilih gambar baru'}
+                      </div>
+                      {fileNames.thumbnail && <div className="file-name">✓ {fileNames.thumbnail}</div>}
+                    </div>
+                    {thumbnailPreview && <img src={thumbnailPreview} alt="Preview" className="thumbnail-preview" />}
+                  </div>
+
+                  <div className="button-group">
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => {
+                        setShowEditModal(false);
+                        setEditingMod(null);
+                        setFormData({ name: '', description: '', file: null, thumbnail: null, useLink: false, fileLink: '', tags: [], minecraftType: '', minecraftSeeds: [''] });
+                        setFileNames({ file: '', thumbnail: '' });
+                        setThumbnailPreview(null);
+                        setUploadProgress({ percentage: 0, file: '' });
+                      }}
+                    >
+                      {t(language, 'cancel')}
+                    </button>
+                    <button type="submit" className="btn-submit" disabled={submitting}>
+                      {submitting ? t(language, 'saving') : t(language, 'save')}
+                    </button>
+                  </div>
+
+                  {submitting && (
+                    <div className={`progress-container show`}>
+                      <div className="progress-label">
+                        <span>{t(language, 'uploadPrefix')} {uploadProgress.file}...</span>
+                        <span>{Math.min(Math.round(uploadProgress.percentage), 100)}%</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${Math.min(uploadProgress.percentage, 100)}%` }}></div>
+                      </div>
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showDetailModal && selectedMod && (
+            <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ margin: 0 }}>{selectedMod.name}</h2>
+                  <button
+                    onClick={() => {
+                      playClickSound();
+                      setShowDetailModal(false);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#aaa',
+                      fontSize: '24px',
+                      cursor: 'pointer',
+                      padding: '0 8px',
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <img src={selectedMod.thumbnail_url} alt={selectedMod.name} style={{ width: '100%', borderRadius: '8px', marginBottom: '16px', maxHeight: '400px', objectFit: 'contain', background: '#0f0f0f' }} />
+
+                <div style={{ marginBottom: '16px' }}>
+                  {(selectedMod.tags || []).map(tag => (
+                    <div key={tag} className="mod-tag">{tag}</div>
+                  ))}
+                  {selectedMod.minecraft_type && (
+                    <div className="mod-tag" style={{ marginLeft: '4px' }}>{selectedMod.minecraft_type}</div>
+                  )}
+                </div>
+
+                <div className="mod-creator" style={{ marginBottom: '12px', fontSize: '13px' }}>
+                  {t(language, 'byUser')} {selectedMod.username}
+                </div>
+
+                <div style={{ marginBottom: '16px', padding: '12px', background: '#0f0f0f', borderRadius: '8px', border: '1px solid #333' }}>
+                  <div style={{ fontSize: '14px', color: '#ddd', lineHeight: '1.6' }}>{selectedMod.description}</div>
+                </div>
+
+                {selectedMod.minecraft_type === 'seed' && (selectedMod.minecraft_seeds || []).length > 0 && (
+                  <div style={{ marginBottom: '20px', padding: '12px', background: '#0f0f0f', borderRadius: '8px', border: '1px solid #333' }}>
+                    <h3 style={{ fontSize: '16px', color: '#00d4ff', marginBottom: '12px' }}>Seeds</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {selectedMod.minecraft_seeds.map((seed, index) => (
+                        <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <div
+                            style={{
+                              flex: 1,
+                              padding: '8px 10px',
+                              borderRadius: '6px',
+                              border: '1px solid #333',
+                              background: '#111',
+                              fontSize: '13px',
+                              color: '#f0f0f0',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {seed}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              playClickSound();
+                              if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(seed);
+                              }
+                            }}
+                            style={{
+                              padding: '8px 10px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              background: 'linear-gradient(135deg, #00d4ff 0%, #00aaff 100%)',
+                              color: '#000',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                              fontSize: '12px',
+                            }}
+                          >
+                            {t(language, 'copy')}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+                  <button
+                    onClick={() => {
+                      playClickSound();
+                      handleLike(selectedMod.id);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      border: '2px solid #333',
+                      borderRadius: '8px',
+                      background: (modLikes[selectedMod.id] || []).some(l => l.username === currentUser?.username) ? 'rgba(255, 107, 107, 0.2)' : '#0f0f0f',
+                      color: (modLikes[selectedMod.id] || []).some(l => l.username === currentUser?.username) ? '#ff6b6b' : '#aaa',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    ❤️ {modLikes[selectedMod.id]?.length || 0}
+                  </button>
+                  {selectedMod.minecraft_type !== 'seed' && (
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        handleDownload(selectedMod.file_url, selectedMod.use_link);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'linear-gradient(135deg, #00d4ff 0%, #00aaff 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#000',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(0, 212, 255, 0.3)',
+                      }}
+                    >
+                      {t(language, 'download')}
+                    </button>
+                  )}
+                </div>
+
+                {currentUser?.username === selectedMod.username && (
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        openEditModal(selectedMod);
+                        setShowDetailModal(false);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'linear-gradient(135deg, #00d4ff 0%, #00aaff 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#000',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(0, 212, 255, 0.3)',
+                      }}
+                    >
+                      {t(language, 'edit')}
+                    </button>
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        handleDeleteMod(selectedMod.id);
+                        setShowDetailModal(false);
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        background: 'linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)',
+                      }}
+                    >
+                      {t(language, 'delete')}
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ borderTop: '1px solid #333', paddingTop: '16px' }}>
+                  <h3 style={{ fontSize: '16px', color: '#00d4ff', marginBottom: '12px' }}>
+                    {t(language, 'commentsTitle')} ({modComments[selectedMod.id]?.length || 0})
+                  </h3>
+
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                    <input
+                      type="text"
+                      placeholder={t(language, 'commentPlaceholder')}
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          playClickSound();
+                          handleAddComment(selectedMod.id);
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '10px 12px',
+                        border: '2px solid #333',
+                        borderRadius: '8px',
+                        background: '#0f0f0f',
+                        color: '#f0f0f0',
+                        fontSize: '13px',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        playClickSound();
+                        handleAddComment(selectedMod.id);
+                      }}
+                      style={{
+                        padding: '10px 16px',
+                        background: 'linear-gradient(135deg, #00d4ff 0%, #00aaff 100%)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#000',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                      }}
+                    >
+                      {t(language, 'send')}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
+                    {(modComments[selectedMod.id] || []).reverse().map(comment => (
+                      <div key={comment.id} style={{ padding: '12px', background: '#0f0f0f', borderRadius: '8px', border: '1px solid #333' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#00d4ff' }}>{comment.username}</span>
+                          {currentUser?.username === comment.username && (
+                            <button
+                              onClick={() => handleDeleteComment(comment.id)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#ff6b6b',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                padding: '0 4px',
+                              }}
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#ddd' }}>{comment.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showLanguageModal && (
+            <div className="language-modal-overlay" onClick={() => setShowLanguageModal(false)}>
+              <div className="language-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="language-modal-title">{t(language, 'languageTitle')}</div>
+                <div className="language-modal-subtitle">
+                  {t(language, 'languageSubtitle')}
+                </div>
+                <div className="language-buttons">
+                  <button
+                    className="language-button"
+                    onClick={() => {
+                      playClickSound();
+                      handleSelectLanguage('id');
+                    }}
+                  >
+                    <span><strong>{t(language, 'langId')}</strong></span>
+                    <span>ID</span>
+                  </button>
+                  <button
+                    className="language-button"
+                    onClick={() => {
+                      playClickSound();
+                      handleSelectLanguage('en');
+                    }}
+                  >
+                    <span><strong>{t(language, 'langEn')}</strong></span>
+                    <span>EN</span>
+                  </button>
+                  <button
+                    className="language-button"
+                    onClick={() => {
+                      playClickSound();
+                      handleSelectLanguage('es');
+                    }}
+                  >
+                    <span><strong>{t(language, 'langEs')}</strong></span>
+                    <span>ES</span>
+                  </button>
+                </div>
+                <div className="language-modal-note">
+                  {t(language, 'languageNote')}
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
